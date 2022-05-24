@@ -2,6 +2,9 @@ var backGround;
 var rick, rickImg, shootRick;
 var zombie, zombieImg, zombieGroup;
 var heart1, heart2, heart3, heart1Img, heart2Img, heart3Img;
+var bullets = 20;
+var bullet, bulletGroup;
+var gameState = "playing";
 
 function preload(){
     backGround = loadImage("./assets/bg.jpeg");
@@ -27,6 +30,7 @@ function setup() {
     rick.setCollider("rectangle", 0, 0, 200, 550);
 
     zombieGroup = new Group();
+    bulletGroup = new Group();
 
     heart1 = createSprite(1130, 40);
     heart1.addImage("coracao1",heart1Img);
@@ -52,16 +56,75 @@ function draw() {
     
     drawSprites();
 
-    atirar();
-    movimente();
-    randomZombies();
+    fill("yellow");
+    textSize(25);
+    text("Number of bullets: " + bullets, 930, 100);
 
-    if(zombieGroup.isTouching(rick)){
-        for(var i = 0; i < zombieGroup.length; i++){
-            if(zombieGroup[i].isTouching(rick)){
-                zombieGroup[i].destroy();
+    if(gameState === "playing"){
+        atirar();
+        movimente();
+        randomZombies();
+    
+        if(zombieGroup.isTouching(rick)){
+            for(var i = 0; i < zombieGroup.length; i++){
+                if(zombieGroup[i].isTouching(rick)){
+                    zombieGroup[i].destroy();
+                }
             }
         }
+    
+        if(zombieGroup.isTouching(bulletGroup)){
+            for(var i = 0; i < bulletGroup.length; i++){
+                if(zombieGroup[i].isTouching(bulletGroup)){
+                    zombieGroup[i].destroy();
+                    bulletGroup.destroyEach();
+                }
+            }
+        }
+        
+        if(bullets === 0){
+            gameState = "noBalas";
+        }
+
+    }
+    
+    if(gameState === "noBalas"){
+        fill("yellow");
+        stroke("black");
+        strokeWeight(5);
+        textSize(30);
+        textAlign(CENTER, CENTER);
+        text("Você é uma decepção, acabaram suas balas.", width/2, height/2);
+
+        zombieGroup.destroyEach();
+        rick.destroy();
+
+    }
+
+    if(gameState === "noVidas"){
+        fill("yellow");
+        stroke("black");
+        strokeWeight(5);
+        textSize(30);
+        textAlign(CENTER, CENTER);
+        text("Você é uma decepção, e morreu.", width/2, height/2);
+
+        zombieGroup.destroyEach();
+        rick.destroy();
+
+    }
+
+    if(gameState === "yesGanhou"){
+        fill("yellow");
+        stroke("black");
+        strokeWeight(5);
+        stroke(20);
+        textSize(30);
+        textAlign(CENTER, CENTER);
+        text("Parabéns, você não é uma decepção e salvou o dia e o mundo", width/2, height/2);
+
+        rick.destroy();
+
     }
 
 }
@@ -70,6 +133,12 @@ function atirar(){
     if(keyWentDown ("space")){
         rick.changeAnimation("atirando");
         rick.scale = 0.9;
+
+        bullet = createSprite(rick.x + 70, rick.y - 75, 20, 10);
+        bullet.velocityX = 10;
+        bulletGroup.add(bullet);
+        bullets--;
+        
     }
 
     if(keyWentUp ("space")){
