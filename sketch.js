@@ -1,19 +1,31 @@
-var backGround;
+var backGround, theEnd;
 var rick, rickImg, shootRick;
 var zombie, zombieImg, zombieGroup;
 var heart1, heart2, heart3, heart1Img, heart2Img, heart3Img;
+var tiroSound, perdeuSound, ganhouSound;
+var life = 3;
 var bullets = 20;
 var bullet, bulletGroup;
 var gameState = "playing";
+var score = 0;
 
 function preload(){
     backGround = loadImage("./assets/bg.jpeg");
+
+    theEnd = loadImage("./assets/casa.png");
+
     rickImg = loadAnimation("./assets/shooter_2.png", "./assets/shooter_2.png",  "./assets/shooter_2.png", "./assets/shooter_1.png" );
     shootRick = loadImage("./assets/shooter_3.png");
+
     zombieImg = loadImage("./assets/zombie.png");
+
     heart1Img = loadImage("./assets/heart_1.png");
     heart2Img = loadImage("./assets/heart_2.png");
     heart3Img = loadImage("./assets/heart_3.png");
+
+    tiroSound = loadSound("./assets/explosion.mp3");
+    perdeuSound = loadSound("./assets/lose.mp3");
+    ganhouSound = loadSound("./assets/win.mp3");
 
 }
 
@@ -59,16 +71,36 @@ function draw() {
     fill("yellow");
     textSize(25);
     text("Number of bullets: " + bullets, 930, 100);
+    text("Score: " + score, 1000, 130);
+
 
     if(gameState === "playing"){
         atirar();
         movimente();
         randomZombies();
+
+        if(life === 3){
+            heart3.visible = true;
+            heart2.visible = false;
+            heart1.visible = false;
+        }
+        if(life === 2){
+            heart3.visible = false;
+            heart2.visible = true;
+            heart1.visible = false;
+        }
+        if(life === 1){
+            heart3.visible = false;
+            heart2.visible = false;
+            heart1.visible = true;
+        }
     
         if(zombieGroup.isTouching(rick)){
             for(var i = 0; i < zombieGroup.length; i++){
                 if(zombieGroup[i].isTouching(rick)){
                     zombieGroup[i].destroy();
+                   life--;
+
                 }
             }
         }
@@ -78,14 +110,26 @@ function draw() {
                 if(zombieGroup[i].isTouching(bulletGroup)){
                     zombieGroup[i].destroy();
                     bulletGroup.destroyEach();
+                    score++;
                 }
             }
         }
         
         if(bullets === 0){
             gameState = "noBalas";
+            perdeuSound.play();
         }
 
+        if(score === 10){
+            gameState = "yesGanhou";
+            ganhouSound.play();
+        }
+
+        if(life === 0){
+            gameState = "noVidas";
+            heart1.visible = false;
+            perdeuSound.play();
+        }
     }
     
     if(gameState === "noBalas"){
@@ -115,6 +159,7 @@ function draw() {
     }
 
     if(gameState === "yesGanhou"){
+        image(theEnd, 0, 0, 1280, 933);
         fill("yellow");
         stroke("black");
         strokeWeight(5);
@@ -123,7 +168,9 @@ function draw() {
         textAlign(CENTER, CENTER);
         text("Parabéns, você não é uma decepção e salvou o dia e o mundo", width/2, height/2);
 
-        rick.destroy();
+        
+    
+        zombieGroup.destroyEach();
 
     }
 
@@ -138,6 +185,8 @@ function atirar(){
         bullet.velocityX = 10;
         bulletGroup.add(bullet);
         bullets--;
+
+        tiroSound.play();
         
     }
 
@@ -170,7 +219,7 @@ function movimente(){
 function randomZombies(){
     if(frameCount % 60 === 0){
         zombie = createSprite(random(1090, 1280), random(360, 750));
-        zombie.velocityX = -3;
+        zombie.velocityX = -3-(frameCount / 10);
         zombie.addImage("zumbi", zombieImg);
         zombie.scale = 0.35;
         zombie.debug = false;
